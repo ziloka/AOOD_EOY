@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "aood-eoy"
+version = "0.1.0"
+description = ""
+authors = ["Ziloka <50429450+ziloka@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pillow = "^10.3.0"
+numpy = "^1.26.4"
+perlin-noise = "^1.12"
+pygame = "^2.5.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
