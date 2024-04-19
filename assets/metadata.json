@@ -1,7 +1,9 @@
 {
     "dirt": {
         "width": 16,
-        "height": 16
+        "height": 16,
+        "rows": 2,
+        "columns": 3
     },
     "grass": {
         "width": 16,
