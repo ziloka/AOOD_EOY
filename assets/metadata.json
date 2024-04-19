@@ -1,0 +1,14 @@
+{
+    "dirt": {
+        "width": 16,
+        "height": 16
+    },
+    "grass": {
+        "width": 16,
+        "height": 16
+    },
+    "water": {
+        "width": 16,
+        "height": 16
+    }
+}
