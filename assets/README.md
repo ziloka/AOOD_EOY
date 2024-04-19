@@ -1,0 +1,1 @@
+every single tile is 16 by 16 pixels
