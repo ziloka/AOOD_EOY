@@ -19,21 +19,21 @@ SEED = random.randint(0, 100000)
 noise = PerlinNoise(octaves=6, seed=SEED)
 xpix, ypix = TILES_COLUMN, TILES_ROW
 noise_map = [[noise([i/xpix, j/ypix]) for j in range(xpix)] for i in range(ypix)]
-tile_map = [[0 for j in range(xpix)] for i in range(ypix)]
+tile_map = [[None] * xpix] * ypix
 
 def draw_terrain():
     for i in range(0, TILES_ROW):
         for j in range(0, TILES_COLUMN):
-            cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
-            column = noise_map[i][j] # the smaller the number is the more likely it is going to show up
+            column = noise_map[i][j]
             # https://stackoverflow.com/a/74592123
             for biome in biomes:
                 if column >= biome.value:
-                    if tile_map[i][j] == 0:
+                    if tile_map[i][j] == None:
                         data = sprite_metadata[biome.name]
                         x = random.randint(0, data["columns"]-1) * TILE_SIZE
                         y = random.randint(0, data["rows"]-1) * TILE_SIZE
                         tile_map[i][j] = (x, y)
+                    cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
                     cropped.blit(pygame.image.load(f"assets/{biome.name}.png"), (0, 0), (*tile_map[i][j], TILE_SIZE, TILE_SIZE))
                     cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
                     screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
@@ -46,6 +46,8 @@ while True:
             sys.exit()
         if event.type == pygame.WINDOWRESIZED:
             width, height = screen.get_width(), screen.get_height()
+
+            draw_terrain()
 
     draw_terrain()
     pygame.display.flip()

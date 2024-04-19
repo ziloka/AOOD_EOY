@@ -7,6 +7,7 @@ TILES_ROW = 24
 # in each spritesheet, sprites are 16 by 16
 TILE_SIZE = 16
 
+# the smaller the number is the more likely it is going to show up
 class biomes(Enum):
-    dirt = 0.009
+    dirt = -0.8
     grass = 0.002
