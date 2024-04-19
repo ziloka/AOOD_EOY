@@ -7,10 +7,14 @@
     },
     "grass": {
         "width": 16,
-        "height": 16
+        "height": 16,
+        "rows": 1,
+        "columns": 3
     },
     "water": {
         "width": 16,
-        "height": 16
+        "height": 16,
+        "rows": 1,
+        "columns": 4
     }
 }
