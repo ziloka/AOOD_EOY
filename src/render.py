@@ -1,4 +1,5 @@
 import pygame
+from ground import Ground
 
 # https://github.com/clear-code-projects/Pygame-Cameras/blob/85c3f0b65d3c4ea68d5c56127b0012637984d679/camera.py
 
@@ -50,8 +51,8 @@ class CameraGroup(pygame.sprite.Group):
 		self.camera_rect = pygame.Rect(l,t,w,h)
 
 		# ground
-		# self.ground_surf = pygame.image.load('graphics/ground.png').convert_alpha()
-		# self.ground_rect = self.ground_surf.get_rect(topleft = (0,0))
+		self.ground = Ground()
+		self.ground.draw_terrain()
 
 		# camera speed
 		self.keyboard_speed = 5
@@ -94,6 +95,8 @@ class CameraGroup(pygame.sprite.Group):
 
 		self.offset.x = self.camera_rect.left - self.camera_borders['left']
 		self.offset.y = self.camera_rect.top - self.camera_borders['top']
+
+		return keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_w] or keys[pygame.K_s]
 
 	def mouse_control(self):
 		mouse = pygame.math.Vector2(pygame.mouse.get_pos())
@@ -144,19 +147,17 @@ class CameraGroup(pygame.sprite.Group):
 			self.zoom_scale -= 0.1
 
 	def custom_draw(self, player):
-		
 		self.center_target_camera(player)
 		# self.box_target_camera(player)
-		self.keyboard_control()
+		changed = self.keyboard_control()
 		# self.mouse_control()
 		# self.zoom_keyboard_control()
 
-		self.internal_surf.fill('#71ddee')
-
-		# ground 
-		ground_offset = self.ground_rect.topleft - self.offset + self.internal_offset
-		# self.internal_surf.blit(self.ground_surf, ground_offset)
-
+		# self.internal_surf.fill('#71ddee')
+		if changed:
+			ground_offset = self.offset + self.internal_offset
+			self.ground.move(ground_offset)
+		
 		# active elements
 		for sprite in sorted(self.sprites(), key = lambda sprite: sprite.rect.centery):
 			offset_pos = sprite.rect.topleft - self.offset + self.internal_offset

@@ -1,5 +1,4 @@
 # py -m pip install perlin-noise pygame
-import random
 import pygame
 import sys
 from pygame.locals import *
@@ -10,7 +9,6 @@ pygame.init()
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((TILES_COLUMN * TILE_SIZE, TILES_ROW * TILE_SIZE),  pygame.RESIZABLE)
-SEED = random.randint(0, 100000)
 
 camera_group = CameraGroup()
 player = Player((640,360), camera_group)
