@@ -1,5 +1,6 @@
 import pygame
 from ground import Ground
+from consts import *
 
 # https://github.com/clear-code-projects/Pygame-Cameras/blob/85c3f0b65d3c4ea68d5c56127b0012637984d679/camera.py
 
@@ -7,6 +8,7 @@ class Player(pygame.sprite.Sprite):
 	def __init__(self, pos, group):
 		super().__init__(group)
 		self.image = pygame.Surface([16, 16], pygame.SRCALPHA, 32)
+		self.image.fill("#ff0000")
 		self.rect = self.image.get_rect(center = pos)
 		self.direction = pygame.math.Vector2()
 		self.speed = 5
@@ -43,7 +45,7 @@ class CameraGroup(pygame.sprite.Group):
 		self.half_h = self.display_surface.get_size()[1] // 2
 
 		# box setup
-		self.camera_borders = {'left': 200, 'right': 200, 'top': 100, 'bottom': 100}
+		self.camera_borders = {'left': TILE_SIZE, 'right': TILE_SIZE, 'top': TILE_SIZE, 'bottom': TILE_SIZE}
 		l = self.camera_borders['left']
 		t = self.camera_borders['top']
 		w = self.display_surface.get_size()[0]  - (self.camera_borders['left'] + self.camera_borders['right'])
@@ -55,7 +57,7 @@ class CameraGroup(pygame.sprite.Group):
 		self.ground.draw_terrain()
 
 		# camera speed
-		self.keyboard_speed = 5
+		self.keyboard_speed = TILE_SIZE
 		self.mouse_speed = 0.2
 
 		# zoom 
@@ -96,7 +98,7 @@ class CameraGroup(pygame.sprite.Group):
 		self.offset.x = self.camera_rect.left - self.camera_borders['left']
 		self.offset.y = self.camera_rect.top - self.camera_borders['top']
 
-		return keys[pygame.K_a] or keys[pygame.K_d] or keys[pygame.K_w] or keys[pygame.K_s]
+		return any(keys[i] for i in [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s])
 
 	def mouse_control(self):
 		mouse = pygame.math.Vector2(pygame.mouse.get_pos())
@@ -153,7 +155,6 @@ class CameraGroup(pygame.sprite.Group):
 		# self.mouse_control()
 		# self.zoom_keyboard_control()
 
-		# self.internal_surf.fill('#71ddee')
 		if changed:
 			ground_offset = self.offset + self.internal_offset
 			self.ground.move(ground_offset)
@@ -167,8 +168,3 @@ class CameraGroup(pygame.sprite.Group):
 		scaled_rect = scaled_surf.get_rect(center = (self.half_w,self.half_h))
 
 		self.display_surface.blit(scaled_surf,scaled_rect)
-
-
-camera_group = pygame.sprite.Group()
-
-# class Player(pygame.sprite.Sprite)

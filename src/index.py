@@ -1,6 +1,6 @@
 # py -m pip install perlin-noise pygame
-import pygame
 import sys
+import pygame
 from pygame.locals import *
 
 from consts import *
