@@ -12,7 +12,7 @@ class Player(pygame.sprite.Sprite):
 		self.image.fill("#ff0000")
 		self.rect = self.image.get_rect(center = pos)
 		self.direction = pygame.math.Vector2()
-		self.speed = 5
+		self.speed = 2
 
 	def input(self):
 		keys = pygame.key.get_pressed()
@@ -71,9 +71,11 @@ class CameraGroup(pygame.sprite.Group):
 		self.internal_offset.x = self.internal_surf_size[0] // 2 - self.half_w
 		self.internal_offset.y = self.internal_surf_size[1] // 2 - self.half_h
 
-	def center_target_camera(self,target):
+	def center_target_camera(self, target):
+		prevX, prevY = self.offset.x, self.offset.y
 		self.offset.x = target.rect.centerx - self.half_w
 		self.offset.y = target.rect.centery - self.half_h
+		return prevX != self.offset.x or self.offset.y != prevY
 
 	def box_target_camera(self,target):
 		if target.rect.left < self.camera_rect.left:
@@ -97,8 +99,6 @@ class CameraGroup(pygame.sprite.Group):
 
 		self.offset.x = self.camera_rect.left - self.camera_borders['left']
 		self.offset.y = self.camera_rect.top - self.camera_borders['top']
-
-		return any(keys[i] for i in [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s])
 
 	def mouse_control(self):
 		mouse = pygame.math.Vector2(pygame.mouse.get_pos())
@@ -148,23 +148,24 @@ class CameraGroup(pygame.sprite.Group):
 		if keys[pygame.K_e]:
 			self.zoom_scale -= 0.1
 
+	# https://stackoverflow.com/questions/56211392/how-to-move-a-pygame-object-and-erase-it-in-its-previous-position
 	def custom_draw(self, player):
-		# self.center_target_camera(player)
+		changed = self.center_target_camera(player)
 		# self.box_target_camera(player)
-		changed = self.keyboard_control()
+		# changed = self.keyboard_control()
 		# self.mouse_control()
 		# self.zoom_keyboard_control()
-
+		
 		if changed:
 			ground_offset = self.offset + self.internal_offset
 			self.ground.move(ground_offset)
-		
+
 		# active elements
 		for sprite in sorted(self.sprites(), key = lambda sprite: sprite.rect.centery):
 			offset_pos = sprite.rect.topleft - self.offset + self.internal_offset
-			self.internal_surf.blit(sprite.image,offset_pos)
+			self.internal_surf.blit(sprite.image, offset_pos)
 
-		scaled_surf = pygame.transform.scale(self.internal_surf,self.internal_surface_size_vector * self.zoom_scale)
+		scaled_surf = pygame.transform.scale(self.internal_surf, self.internal_surface_size_vector * self.zoom_scale)
 		scaled_rect = scaled_surf.get_rect(center = (self.half_w,self.half_h))
 
-		self.display_surface.blit(scaled_surf,scaled_rect)
+		self.display_surface.blit(scaled_surf, scaled_rect)
