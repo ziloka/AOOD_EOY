@@ -21,6 +21,7 @@ while True:
                 sys.exit()
             case pygame.WINDOWRESIZED:
                 camera_group.custom_draw(player)
+                camera_group.ground.draw_terrain()
             case pygame.KEYDOWN:
                 match event.key:
                     case pygame.K_ESCAPE:
