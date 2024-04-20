@@ -7,7 +7,7 @@ from consts import *
 class Player(pygame.sprite.Sprite):
 	def __init__(self, pos, group):
 		super().__init__(group)
-		self.image = pygame.Surface([16, 16], pygame.SRCALPHA, 32)
+		self.image = pygame.Surface([RESIZE_TILE, RESIZE_TILE], pygame.SRCALPHA, 32)
 		self.image.fill("#ff0000")
 		self.rect = self.image.get_rect(center = pos)
 		self.direction = pygame.math.Vector2()
@@ -17,16 +17,16 @@ class Player(pygame.sprite.Sprite):
 		keys = pygame.key.get_pressed()
 
 		if keys[pygame.K_UP]:
-			self.direction.y = -1
+			self.direction.y = -TILE_SIZE
 		elif keys[pygame.K_DOWN]:
-			self.direction.y = 1
+			self.direction.y = TILE_SIZE
 		else:
 			self.direction.y = 0
 
 		if keys[pygame.K_RIGHT]:
-			self.direction.x = 1
+			self.direction.x = TILE_SIZE
 		elif keys[pygame.K_LEFT]:
-			self.direction.x = -1
+			self.direction.x = -TILE_SIZE
 		else:
 			self.direction.x = 0
 
@@ -45,7 +45,7 @@ class CameraGroup(pygame.sprite.Group):
 		self.half_h = self.display_surface.get_size()[1] // 2
 
 		# box setup
-		self.camera_borders = {'left': TILE_SIZE, 'right': TILE_SIZE, 'top': TILE_SIZE, 'bottom': TILE_SIZE}
+		self.camera_borders = {'left': 200, 'right': 200, 'top': 100, 'bottom': 100}
 		l = self.camera_borders['left']
 		t = self.camera_borders['top']
 		w = self.display_surface.get_size()[0]  - (self.camera_borders['left'] + self.camera_borders['right'])
@@ -57,14 +57,14 @@ class CameraGroup(pygame.sprite.Group):
 		self.ground.draw_terrain()
 
 		# camera speed
-		self.keyboard_speed = TILE_SIZE
+		self.keyboard_speed = RESIZE_TILE
 		self.mouse_speed = 0.2
 
 		# zoom 
 		self.zoom_scale = 1
 		self.internal_surf_size = (2500,2500)
 		self.internal_surf = pygame.Surface(self.internal_surf_size, pygame.SRCALPHA)
-		self.internal_rect = self.internal_surf.get_rect(center = (self.half_w,self.half_h))
+		self.internal_rect = self.internal_surf.get_rect(center = (self.half_w, self.half_h))
 		self.internal_surface_size_vector = pygame.math.Vector2(self.internal_surf_size)
 		self.internal_offset = pygame.math.Vector2()
 		self.internal_offset.x = self.internal_surf_size[0] // 2 - self.half_w
@@ -75,7 +75,6 @@ class CameraGroup(pygame.sprite.Group):
 		self.offset.y = target.rect.centery - self.half_h
 
 	def box_target_camera(self,target):
-
 		if target.rect.left < self.camera_rect.left:
 			self.camera_rect.left = target.rect.left
 		if target.rect.right > self.camera_rect.right:

@@ -17,14 +17,13 @@ class Ground(pygame.sprite.Group):
         self.generate_terrain()
 
     def move(self, screen_coordinates):
-        print(screen_coordinates)
-
+        print(f"moved to: {screen_coordinates}")
+        self.generate_noisemap(screen_coordinates)
         self.generate_terrain()
         self.draw_terrain()
 
-
-    def generate_noisemap(self):
-        self.noise_map = [[self.noise([i/self.xpix, j/self.ypix]) for j in range(0, TILES_COLUMN)] for i in range(0, TILES_ROW)]
+    def generate_noisemap(self, offset=(0, 0)):
+        self.noise_map = [[self.noise([offset[0]/self.xpix, offset[0]/self.ypix]) for j in range(0, TILES_COLUMN)] for i in range(0, TILES_ROW)]
 
     def generate_terrain(self):
         self.generate_noisemap()
