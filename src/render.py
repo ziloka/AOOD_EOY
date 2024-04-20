@@ -2,6 +2,7 @@ import pygame
 from ground import Ground
 from consts import *
 
+# https://www.youtube.com/watch?v=u7LPRqrzry8
 # https://github.com/clear-code-projects/Pygame-Cameras/blob/85c3f0b65d3c4ea68d5c56127b0012637984d679/camera.py
 
 class Player(pygame.sprite.Sprite):
@@ -148,7 +149,7 @@ class CameraGroup(pygame.sprite.Group):
 			self.zoom_scale -= 0.1
 
 	def custom_draw(self, player):
-		self.center_target_camera(player)
+		# self.center_target_camera(player)
 		# self.box_target_camera(player)
 		changed = self.keyboard_control()
 		# self.mouse_control()

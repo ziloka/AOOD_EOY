@@ -14,14 +14,13 @@ camera_group = CameraGroup()
 player = Player((640,360), camera_group)
 
 while True:
-    clock.tick(60)
     for event in pygame.event.get():
         match event.type:
             case pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             case pygame.WINDOWRESIZED:
-                width, height = screen.get_width(), screen.get_height()
+                camera_group.custom_draw(player)
             case pygame.KEYDOWN:
                 match event.key:
                     case pygame.K_ESCAPE:
@@ -29,8 +28,10 @@ while True:
                         sys.exit()
             case pygame.MOUSEWHEEL:
                 camera_group.zoom_scale += event.y * 0.03
-
+    
     camera_group.update()
     camera_group.custom_draw(player)
+    # screen.fill((0, 0, 0))
     
     pygame.display.update()
+    clock.tick(60)
