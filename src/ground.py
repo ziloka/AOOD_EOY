@@ -10,10 +10,7 @@ class Ground(pygame.sprite.Group):
         self.screen = pygame.display.get_surface()
         self.seed = random.randint(0, 100000)
         self.sprite_metadata = json.load(open("assets/metadata.json", "r"))
-        self.sprites = {}
-        for biome in biomes:
-            self.sprites[biome.name] = pygame.image.load(f"assets/{biome.name}.png")
-        self.noise = PerlinNoise(octaves=6, seed=self.seed)
+        self.sprites = {biomes.name: pygame.image.load(f"assets/{biomes.name}.png") for biomes in biomes}
         self.xpix, self.ypix = TILES_COLUMN, TILES_ROW
         self.tile_map = [[None] * self.xpix] * self.ypix
         self.generate_noisemap()
