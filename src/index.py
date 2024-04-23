@@ -1,18 +1,23 @@
-# py -m pip install perlin-noise pygame
+#Imports
 import sys
 import random
 import pygame
-from pygame.locals import *
+from entities import *
 
-from consts import *
-from entities import CameraGroup, Player, Spritesheet, Tree, Slime
+#Variables
+fps = 60
+ 
+#Setup
 pygame.init()
-
 clock = pygame.time.Clock()
-screen = pygame.display.set_mode((TILES_COLUMN * TILE_SIZE, TILES_ROW * TILE_SIZE),  pygame.RESIZABLE)
+window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+WIDTH, HEIGHT = window.get_size()
+pygame.display.set_caption('AOOD EOY Game')
 
+#Camera
 camera_group = CameraGroup()
 
+#Spritesheet
 player_ss = Spritesheet('Sprites/PlayerSS.png')
 player_sprites = [player_ss.get_sprite(15*j, 22*i, 14, 21) for j in range(3) for i in range(3)]
 
@@ -40,7 +45,7 @@ while len(trees) <= num_trees:
 
 #Player
 player = Player(player_sprites, camera_group)
-player.rect.x = (screen.get_width() - player.rect.width)/2; player.rect.y = (screen.get_height() - player.rect.height)/2
+player.rect.x = (WIDTH - player.rect.width)/2; player.rect.y = (HEIGHT - player.rect.height)/2
 player_spd  = 5 
 
 #Slimes
@@ -56,25 +61,43 @@ while len(slimes) <= num_slimes:
     else:
         slimes.append(newslime)
 
-while True:
+
+#Main loop
+running = True
+while running:
     for event in pygame.event.get():
-        match event.type:
-            case pygame.QUIT:
+        if event.type == pygame.QUIT:
+            running = False
+        #Keydown inputs
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT or event.key == ord('a'):
+                player.setVelX(-player_spd)
+            if event.key == pygame.K_RIGHT or event.key == ord('d'):
+                player.setVelX(player_spd)
+            if event.key == pygame.K_UP or event.key == ord('w'):
+                player.setVelY(-player_spd)
+            if event.key == pygame.K_DOWN or event.key == ord('s'):
+                player.setVelY(player_spd)
+
+        #Keyup inputs
+        if event.type == pygame.KEYUP:
+            if player.getVelX() < 0 and (event.key == pygame.K_LEFT or event.key == ord('a')):
+                player.setVelX(0)
+            if player.getVelX() > 0 and (event.key == pygame.K_RIGHT or event.key == ord('d')):
+                player.setVelX(0)
+            if player.getVelY() < 0 and (event.key == pygame.K_UP or event.key == ord('w')):
+                player.setVelY(0)
+            if player.getVelY() > 0 and (event.key == pygame.K_DOWN or event.key == ord('s')):
+                player.setVelY(0) 
+            if event.key == ord('q'):
                 pygame.quit()
                 sys.exit()
-            case pygame.WINDOWRESIZED:
-                camera_group.custom_draw(player)
-                camera_group.ground.draw_terrain()
-            case pygame.KEYDOWN:
-                match event.key:
-                    case pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
-            case pygame.MOUSEWHEEL:
-                camera_group.zoom_scale += event.y * 0.03
-    
-    camera_group.update()
+
+    window.fill((255, 255, 255))
+
+    #Draw everything in camera group
     camera_group.custom_draw(player)
-    
+    camera_group.update()
+
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(fps)
