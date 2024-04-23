@@ -10,6 +10,9 @@ class Ground(pygame.sprite.Group):
         self.screen = pygame.display.get_surface()
         self.seed = random.randint(0, 100000)
         self.sprite_metadata = json.load(open("assets/metadata.json", "r"))
+        self.sprites = {}
+        for biome in biomes:
+            self.sprites[biome.name] = pygame.image.load(f"assets/{biome.name}.png")
         self.noise = PerlinNoise(octaves=6, seed=self.seed)
         self.xpix, self.ypix = TILES_COLUMN, TILES_ROW
         self.tile_map = [[None] * self.xpix] * self.ypix
@@ -45,6 +48,6 @@ class Ground(pygame.sprite.Group):
                 for biome in biomes:
                     if column >= biome.value:
                         cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                        cropped.blit(pygame.image.load(f"assets/{biome.name}.png"), (0, 0), (*self.tile_map[i][j], TILE_SIZE, TILE_SIZE))
+                        cropped.blit(self.sprites[biome.name], (0, 0), (*self.tile_map[i][j], TILE_SIZE, TILE_SIZE))
                         cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
                         self.screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
