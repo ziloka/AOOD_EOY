@@ -3,7 +3,6 @@ import random
 import pygame
 from perlin_noise import PerlinNoise
 from consts import *
-from utils import *
 
 class Ground(pygame.sprite.Group):
     def __init__(self):
