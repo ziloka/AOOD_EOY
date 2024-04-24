@@ -49,7 +49,7 @@ player.rect.x = (WIDTH - player.rect.width)/2; player.rect.y = (HEIGHT - player.
 player_spd  = 5 
 
 #Slimes
-num_slimes = 100
+num_slimes = 10
 slimes = []
 while len(slimes) <= num_slimes:
     randomx = random.randint(-5000, 5000)
@@ -62,13 +62,14 @@ while len(slimes) <= num_slimes:
         slimes.append(newslime)
 
 
+font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
+
 #Main loop
-running = True
-while running:
-    print(clock.get_fps())
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            pygame.quit()
+            sys.exit()
         #Keydown inputs
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT or event.key == ord('a'):
@@ -90,7 +91,7 @@ while running:
                 player.setVelY(0)
             if player.getVelY() > 0 and (event.key == pygame.K_DOWN or event.key == ord('s')):
                 player.setVelY(0) 
-            if event.key == ord('q'):
+            if event.key == ord('q') or event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
 
@@ -99,6 +100,9 @@ while running:
     #Draw everything in camera group
     camera_group.custom_draw(player)
     camera_group.update()
+
+    text_surface = font.render(str(clock.get_fps()), False, (0, 0, 0))
+    window.blit(text_surface, (0, 0))
 
     pygame.display.update()
     clock.tick(fps)

@@ -1,8 +1,19 @@
+import math
 import json
 import random
 import pygame
+from pygame.constants import *  
 from perlin_noise import PerlinNoise
 from consts import *
+pygame.init()
+
+font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
+
+class Tile():
+    def __init__(self, x, y, biome):
+        self.x = x
+        self.y = y
+        self.biome = biome
 
 class Ground(pygame.sprite.Group):
     def __init__(self):
@@ -11,40 +22,43 @@ class Ground(pygame.sprite.Group):
         self.seed = random.randint(0, 100000)
         self.sprite_metadata = json.load(open("assets/metadata.json", "r"))
         self.sprites = {biomes.name: pygame.image.load(f"assets/{biomes.name}.png") for biomes in biomes}
-        self.xpix, self.ypix = TILES_COLUMN, TILES_ROW
-        self.tile_map = [[None] * self.xpix] * self.ypix
+        self.noise = PerlinNoise(octaves=6, seed=self.seed)
+        self.calculate_tiles()
         self.generate_noisemap()
-        self.generate_terrain()
 
-    def move(self, screen_coordinates):
-        self.generate_noisemap(screen_coordinates)
-        self.generate_terrain()
-        self.draw_terrain()
+    def calculate_tiles(self):
+        self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)
+        self.ypix = math.ceil(self.screen.get_width() / RESIZE_TILE)
+        self.tile_map = [[None] * self.xpix] * self.ypix
 
     def generate_noisemap(self, offset=[0, 0]):
-        self.noise_map = [[self.noise([offset[0]+i/self.xpix, offset[1]+j/self.ypix]) for j in range(0, TILES_COLUMN)] for i in range(0, TILES_ROW)]
+        self.noise_map = [[self.noise([offset[0]+i/self.xpix, offset[1]+j/self.ypix]) for j in range(0, self.xpix)] for i in range(0, self.ypix)]
+        self.generate_terrain()
 
     def generate_terrain(self):
-        for i in range(0, TILES_ROW):
-            for j in range(0, TILES_COLUMN):
-                column = self.noise_map[i][j]
+        for i in range(0, self.ypix):
+            for j in range(0, self.xpix):
                 # https://stackoverflow.com/a/74592123
                 for biome in biomes:
-                    if column >= biome.value:
-                        if self.tile_map[i][j] == None:
-                            data = self.sprite_metadata[biome.name]
-                            x = random.randint(0, data["columns"]-1) * TILE_SIZE
-                            y = random.randint(0, data["rows"]-1) * TILE_SIZE
-                            self.tile_map[i][j] = (x, y)
+                    print(self.noise_map[i][j], " <= ", biome.value)
+                    if self.noise_map[i][j] <= biome.value:
+                        data = self.sprite_metadata[biome.name]
+                        x = random.randint(0, data["columns"]-1) * TILE_SIZE
+                        y = random.randint(0, data["rows"]-1) * TILE_SIZE
+                        self.tile_map[i][j] = Tile(x, y, biome)
+                        break
 
     def draw_terrain(self):
-        for i in range(0, TILES_ROW):
-            for j in range(0, TILES_COLUMN):
-                column = self.noise_map[i][j]
-                # https://stackoverflow.com/a/74592123
-                for biome in biomes:
-                    if column >= biome.value:
-                        cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                        cropped.blit(self.sprites[biome.name], (0, 0), (*self.tile_map[i][j], TILE_SIZE, TILE_SIZE))
-                        cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
-                        self.screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
+        # num = 1
+        for i in range(0, self.ypix):
+            for j in range(0, self.xpix):
+                tile = self.tile_map[i][j]
+                cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
+                cropped.blit(self.sprites[tile.biome.name], (0, 0), (tile.x, tile.y, TILE_SIZE, TILE_SIZE))
+                cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
+                self.screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
+
+                # debugging
+                # text_surface = font.render(str(num), False, (0, 0, 0))
+                # self.screen.blit(text_surface, (i * RESIZE_TILE, j * RESIZE_TILE))
+                # num+=1
