@@ -31,7 +31,6 @@ class CameraGroup(pygame.sprite.Group):
     def custom_draw(self, player):
         self.center_target_camera(player)
 
-        ground_offset = self.ground_rect.topleft - self.offset  
         self.ground.move(self.offset)
 
         for sprite in sorted(self.sprites(), key= lambda sprite: sprite.rect.centery):

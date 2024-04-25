@@ -1,8 +1,15 @@
+import math
 import json
 import random
 import pygame
 from perlin_noise import PerlinNoise
 from consts import *
+
+class Tile():
+    def __init__(self, x, y, biome):
+        self.x = x
+        self.y = y
+        self.biome = biome
 
 class Ground(pygame.sprite.Group):
     def __init__(self):
@@ -11,10 +18,15 @@ class Ground(pygame.sprite.Group):
         self.seed = random.randint(0, 100000)
         self.sprite_metadata = json.load(open("assets/metadata.json", "r"))
         self.sprites = {biomes.name: pygame.image.load(f"assets/{biomes.name}.png") for biomes in biomes}
-        self.xpix, self.ypix = TILES_COLUMN, TILES_ROW
-        self.tile_map = [[None] * self.xpix] * self.ypix
+        self.noise = PerlinNoise(octaves=6, seed=self.seed)
+        self.calculate_tiles()
         self.generate_noisemap()
         self.generate_terrain()
+
+    def calculate_tiles(self):
+        self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)
+        self.ypix = math.ceil(self.screen.get_width() / RESIZE_TILE)
+        self.tile_map = [[None] * self.xpix] * self.ypix
 
     def move(self, screen_coordinates):
         self.generate_noisemap(screen_coordinates)
@@ -22,24 +34,25 @@ class Ground(pygame.sprite.Group):
         self.draw_terrain()
 
     def generate_noisemap(self, offset=[0, 0]):
-        self.noise_map = [[self.noise([offset[0]+i/self.xpix, offset[1]+j/self.ypix]) for j in range(0, TILES_COLUMN)] for i in range(0, TILES_ROW)]
+        self.noise_map = [[self.noise([offset[0]+i/self.xpix, offset[1]+j/self.ypix]) for j in range(0, self.xpix)] for i in range(0, self.ypix)]
 
     def generate_terrain(self):
-        for i in range(0, TILES_ROW):
-            for j in range(0, TILES_COLUMN):
+        for i in range(0, self.ypix):
+            for j in range(0, self.xpix):
+                print(self.ypix, self.xpix, i, j)
                 column = self.noise_map[i][j]
                 # https://stackoverflow.com/a/74592123
                 for biome in biomes:
                     if column >= biome.value:
-                        if self.tile_map[i][j] == None:
-                            data = self.sprite_metadata[biome.name]
-                            x = random.randint(0, data["columns"]-1) * TILE_SIZE
-                            y = random.randint(0, data["rows"]-1) * TILE_SIZE
-                            self.tile_map[i][j] = (x, y)
+                        # if self.tile_map[i][j] == None:
+                        data = self.sprite_metadata[biome.name]
+                        x = random.randint(0, data["columns"]-1) * TILE_SIZE
+                        y = random.randint(0, data["rows"]-1) * TILE_SIZE
+                        self.tile_map[i][j] = (x, y)
 
     def draw_terrain(self):
-        for i in range(0, TILES_ROW):
-            for j in range(0, TILES_COLUMN):
+        for i in range(0, self.ypix):
+            for j in range(0, self.xpix):
                 column = self.noise_map[i][j]
                 # https://stackoverflow.com/a/74592123
                 for biome in biomes:
