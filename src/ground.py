@@ -2,8 +2,18 @@ import math
 import json
 import random
 import pygame
+from pygame.constants import *  
 from perlin_noise import PerlinNoise
 from consts import *
+pygame.init()
+
+font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
+
+class Tile():
+    def __init__(self, x, y, biome):
+        self.x = x
+        self.y = y
+        self.biome = biome
 
 class Tile():
     def __init__(self, x, y, biome):
@@ -21,7 +31,6 @@ class Ground(pygame.sprite.Group):
         self.noise = PerlinNoise(octaves=8, seed=self.seed)
         self.calculate_tiles()
         self.generate_noisemap()
-        self.generate_terrain()
 
     def calculate_tiles(self):
         self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)

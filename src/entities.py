@@ -25,13 +25,21 @@ class CameraGroup(pygame.sprite.Group):
         self.ground.draw_terrain()
 
     def center_target_camera(self, target):
+        previous_offset = self.offset
         self.offset.x = target.rect.centerx - self.display_surface.get_width() // 2
         self.offset.y = target.rect.centery - self.display_surface.get_height() // 2
+        return previous_offset != self.offset
 
     def custom_draw(self, player):
-        self.center_target_camera(player)
+        changed = self.center_target_camera(player)
 
+<<<<<<< HEAD
         self.ground.move(self.offset)
+=======
+        if changed:
+            self.ground.generate_noisemap(self.offset)
+        self.ground.draw_terrain()
+>>>>>>> 0d59b258e12be97e00a5b8dcae15e3bfb39d0ffa
 
         for sprite in sorted(self.sprites(), key= lambda sprite: sprite.rect.centery):
             offset_pos = sprite.rect.topleft - self.offset
