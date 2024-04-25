@@ -5,6 +5,7 @@ import pygame
 from pygame.constants import *  
 from perlin_noise import PerlinNoise
 from consts import *
+from utils import *
 pygame.init()
 
 font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
@@ -31,6 +32,7 @@ class Ground(pygame.sprite.Group):
         self.noise = PerlinNoise(octaves=8, seed=self.seed)
         self.calculate_tiles()
         self.generate_noisemap()
+        self.generate_terrain()
 
     def calculate_tiles(self):
         self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)
@@ -43,17 +45,17 @@ class Ground(pygame.sprite.Group):
         self.draw_terrain()
 
     def generate_noisemap(self, offset=[0, 0]):
-        self.noise_map = [[self.noise([offset[0]+i/self.xpix, offset[1]+j/self.ypix]) for j in range(0, self.xpix)] for i in range(0, self.ypix)]
+        # offset
+        self.noise_map = [[self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)] for i in range(0, self.ypix)]
+        prettyPrint2d([["{:.2f}".format(num) for num in row] for row in self.noise_map])
 
     def generate_terrain(self):
         for i in range(0, self.ypix):
             for j in range(0, self.xpix):
-                # print(self.ypix, self.xpix, i, j)
                 column = self.noise_map[i][j]
                 # https://stackoverflow.com/a/74592123
                 for biome in biomes:
                     if column >= biome.value:
-                        print(column, biome.name, biome.value)
                         data = self.sprite_metadata[biome.name]
                         x = random.randint(0, data["columns"]-1) * TILE_SIZE
                         y = random.randint(0, data["rows"]-1) * TILE_SIZE
@@ -63,13 +65,11 @@ class Ground(pygame.sprite.Group):
     def draw_terrain(self):
         for i in range(0, self.ypix):
             for j in range(0, self.xpix):
-                tile = self.tile_map[i][j]
-                # column = self.noise_map[i][j]
-                # https://stackoverflow.com/a/74592123
-                # for biome in biomes:
-                #     if column >= biome.value:
-                        # print(tile.biome.name, biome.name)
-                cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                cropped.blit(self.sprites[tile.biome.name], (0, 0), (tile.x, tile.y, TILE_SIZE, TILE_SIZE))
-                cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
-                self.screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
+                column = self.noise_map[i][j]
+                for biome in biomes:
+                    if column >= biome.value:
+                        tile = self.tile_map[i][j]
+                        cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
+                        cropped.blit(self.sprites[tile.biome.name], (0, 0), (tile.x, tile.y, TILE_SIZE, TILE_SIZE))
+                        cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
+                        self.screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
