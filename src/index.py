@@ -65,7 +65,7 @@ while len(slimes) <= num_slimes:
 #Main loop
 running = True
 while running:
-    print(clock.get_fps())
+    # print(clock.get_fps())
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
