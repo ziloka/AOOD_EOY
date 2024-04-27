@@ -2,6 +2,7 @@ import math
 import json
 import random
 import pygame
+import numpy as np
 from pygame.constants import *  
 from perlin_noise import PerlinNoise
 from consts import *
@@ -38,26 +39,38 @@ class Ground(pygame.sprite.Group):
         self.generate_noisemap()
         self.generate_terrain()
 
+        self.offset = pygame.math.Vector2(0, 0)
+
     def calculate_tiles(self):
         self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)
         self.ypix = math.ceil(self.screen.get_width() / RESIZE_TILE)
 
-    def move(self, screen_coordinates):
-        self.generate_noisemap(screen_coordinates)
+    def move(self, screen_coordinates: pygame.math.Vector2):
+        if self.offset.x - screen_coordinates.x > RESIZE_TILE or self.offset.y - screen_coordinates.y > RESIZE_TILE:
+            self.generate_noisemap(screen_coordinates)
         self.generate_terrain()
         self.draw_terrain()
 
-    def generate_noisemap(self, offset=[0, 0]):
-        print(offset)
-        self.noise_map = [[self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)] for i in range(0, self.ypix)]
+    def generate_noisemap(self, offset=pygame.math.Vector2(0, 0)):
+        self.offset = offset
+        num_shift_columns = math.ceil(offset.x / RESIZE_TILE)
+        num_shift_rows = math.ceil(offset.y / RESIZE_TILE)
+
+        if not hasattr(self, "noise_map"):
+            self.noise_map = np.arange(self.ypix * self.xpix, dtype=np.float16).reshape(self.ypix, self.xpix)
+            for i in range(0, self.ypix):
+                self.noise_map[i] = [self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)]
+        else:
+            # Determine what needs to be shifted and populate those values
+            # https://stackoverflow.com/a/25628221
+            x = np.roll(self.noise_map, num_shift_columns, axis=1)
 
     def generate_terrain(self):
         for i in range(0, self.ypix):
             for j in range(0, self.xpix):
-                column = self.noise_map[i][j]
                 # https://stackoverflow.com/a/74592123
                 for biome in biomes:
-                    if column >= biome.value:
+                    if self.noise_map[i][j] >= biome.value:
                         data = self.sprite_metadata[biome.name]
                         num = random.randint(0, data["columns"] * data["rows"])-1
                         self.ground.blit(self.sprites[biome.name][num], (i * RESIZE_TILE, j * RESIZE_TILE))
