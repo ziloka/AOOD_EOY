@@ -31,11 +31,11 @@ class CameraGroup(pygame.sprite.Group):
     def custom_draw(self, player):
         self.center_target_camera(player)
 
-        if player.velx != 0 or player.vely != 0:
-            self.ground.generate_noisemap(self.offset)
+        # if player.velx != 0 or player.vely != 0:
+        #     self.ground.generate_noisemap(self.offset)
         self.ground.draw_terrain()
 
-        for sprite in sorted(self.sprites(), key= lambda sprite: sprite.rect.centery):
+        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
 

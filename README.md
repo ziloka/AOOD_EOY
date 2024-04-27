@@ -8,3 +8,10 @@ Read this book
 ```
 
 ```
+
+Debugging performance stuff
+```
+pip install snakeviz
+poetry run python -m cProfile -o program.prof src/index.py
+poetry run snakeviz program.prof
+```

@@ -8,5 +8,5 @@ RESIZE_TILE = 64
 
 # the smaller the number is the more likely it is going to show up
 class biomes(Enum):
-    dirt = 0.8
-    grass = 0.01
+    dirt = 0
+    grass = -1

@@ -11,6 +11,7 @@ pillow = "^10.3.0"
 numpy = "^1.26.4"
 perlin-noise = "^1.12"
 pygame = "^2.5.2"
+snakeviz = "^2.2.0"
 
 
 [build-system]

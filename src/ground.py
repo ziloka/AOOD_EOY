@@ -11,25 +11,29 @@ pygame.init()
 font = pygame.font.SysFont(pygame.font.get_default_font(), 24)
 
 class Tile():
-    def __init__(self, x, y, biome):
-        self.x = x
-        self.y = y
-        self.biome = biome
-
-class Tile():
-    def __init__(self, x, y, biome):
-        self.x = x
-        self.y = y
+    def __init__(self, num, biome):
+        self.num = num
         self.biome = biome
 
 class Ground(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
         self.screen = pygame.display.get_surface()
+        self.ground = pygame.surface.Surface((self.screen.get_width(), self.screen.get_height()))
         self.seed = random.randint(0, 100000)
         self.sprite_metadata = json.load(open("assets/metadata.json", "r"))
-        self.sprites = {biomes.name: pygame.image.load(f"assets/{biomes.name}.png") for biomes in biomes}
         self.noise = PerlinNoise(octaves=8, seed=self.seed)
+
+        self.sprites = {}
+        for biome in biomes:
+            self.sprites[biome.name] = []
+            spritesheet = pygame.image.load(f"assets/{biome.name}.png").convert()
+            for i in range(0, self.sprite_metadata[biome.name]["rows"]):
+                for j in range(0, self.sprite_metadata[biome.name]["columns"]):
+                    sprite = spritesheet.subsurface(j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                    resized_sprite = pygame.transform.scale(sprite, (RESIZE_TILE, RESIZE_TILE))
+                    self.sprites[biome.name].append(resized_sprite)
+
         self.calculate_tiles()
         self.generate_noisemap()
         self.generate_terrain()
@@ -37,7 +41,6 @@ class Ground(pygame.sprite.Group):
     def calculate_tiles(self):
         self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)
         self.ypix = math.ceil(self.screen.get_width() / RESIZE_TILE)
-        self.tile_map = [[None] * self.xpix] * self.ypix
 
     def move(self, screen_coordinates):
         self.generate_noisemap(screen_coordinates)
@@ -45,9 +48,8 @@ class Ground(pygame.sprite.Group):
         self.draw_terrain()
 
     def generate_noisemap(self, offset=[0, 0]):
-        # offset
+        print(offset)
         self.noise_map = [[self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)] for i in range(0, self.ypix)]
-        prettyPrint2d([["{:.2f}".format(num) for num in row] for row in self.noise_map])
 
     def generate_terrain(self):
         for i in range(0, self.ypix):
@@ -57,19 +59,9 @@ class Ground(pygame.sprite.Group):
                 for biome in biomes:
                     if column >= biome.value:
                         data = self.sprite_metadata[biome.name]
-                        x = random.randint(0, data["columns"]-1) * TILE_SIZE
-                        y = random.randint(0, data["rows"]-1) * TILE_SIZE
-                        self.tile_map[i][j] = Tile(x, y, biome)
+                        num = random.randint(0, data["columns"] * data["rows"])-1
+                        self.ground.blit(self.sprites[biome.name][num], (i * RESIZE_TILE, j * RESIZE_TILE))
                         break
 
     def draw_terrain(self):
-        for i in range(0, self.ypix):
-            for j in range(0, self.xpix):
-                column = self.noise_map[i][j]
-                for biome in biomes:
-                    if column >= biome.value:
-                        tile = self.tile_map[i][j]
-                        cropped = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                        cropped.blit(self.sprites[tile.biome.name], (0, 0), (tile.x, tile.y, TILE_SIZE, TILE_SIZE))
-                        cropped = pygame.transform.scale(cropped, (RESIZE_TILE, RESIZE_TILE))
-                        self.screen.blit(cropped, (i * RESIZE_TILE, j * RESIZE_TILE))
+        pygame.display.get_surface().blit(self.ground, (0, 0))
