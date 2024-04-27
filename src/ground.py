@@ -46,7 +46,7 @@ class Ground(pygame.sprite.Group):
         self.ypix = math.ceil(self.screen.get_width() / RESIZE_TILE)
 
     def move(self, screen_coordinates: pygame.math.Vector2):
-        if self.offset.x - screen_coordinates.x > RESIZE_TILE or self.offset.y - screen_coordinates.y > RESIZE_TILE:
+        if abs(self.offset.x - screen_coordinates.x) > RESIZE_TILE or abs(self.offset.y - screen_coordinates.y) > RESIZE_TILE:
             self.generate_noisemap(screen_coordinates)
         self.generate_terrain()
         self.draw_terrain()
@@ -56,14 +56,53 @@ class Ground(pygame.sprite.Group):
         num_shift_columns = math.ceil(offset.x / RESIZE_TILE)
         num_shift_rows = math.ceil(offset.y / RESIZE_TILE)
 
+        # print(num_shift_columns, num_shift_rows)
         if not hasattr(self, "noise_map"):
             self.noise_map = np.arange(self.ypix * self.xpix, dtype=np.float16).reshape(self.ypix, self.xpix)
             for i in range(0, self.ypix):
                 self.noise_map[i] = [self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)]
-        else:
+        elif num_shift_columns != 0 or num_shift_rows != 0:
             # Determine what needs to be shifted and populate those values
             # https://stackoverflow.com/a/25628221
-            x = np.roll(self.noise_map, num_shift_columns, axis=1)
+            if num_shift_rows < 0: # shift columns to the right
+                self.noise_map = np.roll(self.noise_map, num_shift_rows, axis=1)
+                # print("before", self.noise_map[:, 0])
+                self.noise_map[:, 0] = [self.noise([(self.xpix + offset.x)/self.xpix, j/self.ypix]) for j in range(0, self.ypix)]
+                # print("right shift")
+                # print("after", self.noise_map[:, 0])
+            elif num_shift_rows > 0: # shift columns to the right
+                self.noise_map = np.roll(self.noise_map, -num_shift_rows, axis=1)
+                # print("before", self.noise_map[:, 0])
+                # print("left shift")
+                self.noise_map[:, -1] = [self.noise([(self.xpix + offset.x)/self.xpix, j/self.ypix]) for j in range(0, self.ypix)]
+                # print("after", self.noise_map[:, 0])
+
+            if num_shift_columns < 0: # shift rows down
+                self.noise_map = np.roll(self.noise_map, num_shift_rows, axis=0)
+                self.noise_map[0] = [self.noise([i/self.xpix, (self.ypix + offset.y)/self.ypix]) for i in range(0, self.xpix)]
+                # print("down shift")
+            elif num_shift_columns > 0: # shift rows up
+                self.noise_map = np.roll(self.noise_map, -num_shift_rows, axis=0)
+                self.noise_map[-1] = [self.noise([i/self.xpix, (self.ypix + offset.y)/self.ypix]) for i in range(0, self.xpix)]
+                # print("up shift")
+
+            self.generate_terrain()
+
+            # if num_shift_columns > 0: # shift right
+            #     self.noise_map = np.roll(self.noise_map, num_shift_columns, axis=1)
+            #     self.noise_map[:, :num_shift_columns] = [self.noise([i/self.xpix, j/self.ypix]) for i in range(0, self.ypix) for j in range(0, num_shift_columns)]
+            # elif num_shift_columns < 0: # shift left
+            #     self.noise_map = np.roll(self.noise_map, -num_shift_columns, axis=1)
+            #     self.noise_map[:, -num_shift_columns:] = [self.noise([i/self.xpix, j/self.ypix]) for i in range(0, self.ypix) for j in range(self.xpix + num_shift_columns, self.xpix)]
+
+            # if num_shift_rows > 0: # shift down
+            #     self.noise_map = np.roll(self.noise_map, num_shift_rows, axis=0)
+            #     self.noise_map[:num_shift_rows, :] = [self.noise([i/self.xpix, j/self.ypix]) for i in range(0, num_shift_rows) for j in range(0, self.xpix)]
+            # elif num_shift_rows < 0: # shift up
+            #     self.noise_map = np.roll(self.noise_map, -num_shift_rows, axis=0)
+            #     self.noise_map[-num_shift_rows:, :] = [self.noise([i/self.xpix, j/self.ypix]) for i in range(self.xpix + num_shift_rows, self.xpix)]
+
+            # print("update array!")
 
     def generate_terrain(self):
         for i in range(0, self.ypix):
