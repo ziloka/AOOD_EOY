@@ -16,14 +16,14 @@ pygame.display.set_caption('AOOD EOY Game')
 #Camera
 camera_group = CameraGroup()
 
-player_ss = Spritesheet('Sprites/PlayerSS.png')
+player_ss = Spritesheet('assets/PlayerSS.png')
 player_sprites = [player_ss.get_sprite(15*j, 22*i, 14, 21) for j in range(3) for i in range(3)]
 
 player = Player(player_sprites, camera_group)
 player.rect.x = (WIDTH - player.rect.width)/2; player.rect.y = (HEIGHT - player.rect.height)/2
 player_spd  = 5 
 
-slime_ss = Spritesheet("Sprites/SlimeSS.png", (1, 1))
+slime_ss = Spritesheet("assets/SlimeSS.png", (1, 1))
 slime_sprites = []
 slime_sprites.append([slime_ss.get_sprite(20 + 64*j, 692 + 61*i, 25, 25) for i in range(4) for j in range(5)])
 slime_sprites.append([slime_ss.get_sprite(20 + 64*j, 364 + 63*i, 25, 25) for i in range(3) for j in range(3)])
