@@ -17,7 +17,7 @@ class Tile():
         self.biome = biome
 
 class Ground(pygame.sprite.Group):
-    def __init__(self):
+    def __init__(self, initial_offset=pygame.math.Vector2(0, 0)):
         super().__init__()
         self.screen = pygame.display.get_surface()
         self.ground = pygame.surface.Surface((self.screen.get_width(), self.screen.get_height()))
@@ -35,6 +35,7 @@ class Ground(pygame.sprite.Group):
                     resized_sprite = pygame.transform.scale(sprite, (RESIZE_TILE, RESIZE_TILE))
                     self.sprites[biome.name].append(resized_sprite)
 
+        self.offset = initial_offset
         self.true_offset = pygame.math.Vector2(0, 0)
         self.delta_offset = pygame.math.Vector2(0, 0)
 
@@ -46,51 +47,38 @@ class Ground(pygame.sprite.Group):
         self.xpix = math.ceil(self.screen.get_height() / RESIZE_TILE)
         self.ypix = math.ceil(self.screen.get_width() / RESIZE_TILE)
 
-    def move(self, screen_coordinates: pygame.math.Vector2):
-        if abs(self.true_offset.x - screen_coordinates.x) > RESIZE_TILE or abs(self.true_offset.y - screen_coordinates.y) > RESIZE_TILE:
-            self.generate_noisemap(screen_coordinates)
-        
-        self.draw_terrain()
-
     def generate_noisemap(self, offset=pygame.math.Vector2(0, 0)):
         self.delta_offset += self.true_offset - offset
-        print("Delta: ", self.delta_offset)
         self.true_offset = offset
-        num_shift_columns = self.delta_offset.x // RESIZE_TILE
-        num_shift_rows = self.delta_offset.y // RESIZE_TILE
+
+        if not hasattr(self, "noise_map"):
+            self.noise_map = np.arange(self.ypix * self.xpix, dtype=np.float16).reshape(self.ypix, self.xpix)
+            for i in range(0, self.ypix):
+                self.noise_map[i] = [self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)]
+        # Determine what needs to be shifted and populate those values
+        # https://stackoverflow.com/a/25628221
+        elif self.delta_offset.x < RESIZE_TILE:
+            self.noise_map = np.roll(self.noise_map, -2, axis=0)
+            self.noise_map[:, 0] = [self.noise([(self.xpix + offset.x)/self.xpix, j/self.ypix]) for j in range(0, self.ypix)]
+            # print(f"(player is going right) left shift self.xpix + offset.x = {self.xpix} + {offset.x}")
+        elif self.delta_offset.x > RESIZE_TILE: 
+            self.noise_map = np.roll(self.noise_map, 2, axis=0)
+            self.noise_map[:, -1] = [self.noise([(self.xpix + offset.x)/self.xpix, j/self.ypix]) for j in range(0, self.ypix)]
+            # print(f"(player is going left) right shift self.xpix + offset.x = {self.xpix} + {offset.x}")
+        elif self.delta_offset.y < RESIZE_TILE: # down shift 
+            self.noise_map = np.roll(self.noise_map, -1, axis=1)
+            self.noise_map[-1] = [self.noise([i/self.xpix, (self.ypix + offset.y)/self.ypix]) for i in range(0, self.xpix)]
+            # print(f"(player is going down) up shift self.ypix + offset.y = {self.ypix} + {offset.y}")
+        elif self.delta_offset.y > RESIZE_TILE: # up shift
+            self.noise_map = np.roll(self.noise_map, 1, axis=1)
+            self.noise_map[0] = [self.noise([i/self.xpix, (self.ypix + offset.y)/self.ypix]) for i in range(0, self.xpix)]
+            # print(f"(player is going up) down shift self.ypix + offset.y = {self.ypix} + {offset.y}")
+        self.generate_terrain()
 
         if abs(self.delta_offset.x) > RESIZE_TILE:
             self.delta_offset.x = 0
         elif abs(self.delta_offset.y) > RESIZE_TILE:
             self.delta_offset.y = 0
-
-        print(num_shift_columns, num_shift_rows)
-        if not hasattr(self, "noise_map"):
-            self.noise_map = np.arange(self.ypix * self.xpix, dtype=np.float16).reshape(self.ypix, self.xpix)
-            for i in range(0, self.ypix):
-                self.noise_map[i] = [self.noise([i/self.xpix, j/self.ypix]) for j in range(0, self.xpix)]
-        elif num_shift_columns != 0 or num_shift_rows != 0:
-            # Determine what needs to be shifted and populate those values
-            # https://stackoverflow.com/a/25628221
-            if num_shift_columns < 0: # shift columns to the right
-                self.noise_map = np.roll(self.noise_map, -1, axis=0)    
-                self.noise_map[:, 0] = [self.noise([(self.xpix + offset.x)/self.xpix, j/self.ypix]) for j in range(0, self.ypix)]
-                #print("right shift")
-            elif num_shift_columns > 0: # shift columns to the right
-                self.noise_map = np.roll(self.noise_map, 1, axis=0)
-                #print("left shift")
-                self.noise_map[:, -1] = [self.noise([(self.xpix + offset.x)/self.xpix, j/self.ypix]) for j in range(0, self.ypix)]
-
-            if num_shift_rows < 0: # shift rows down
-                self.noise_map = np.roll(self.noise_map, 1, axis=1)
-                self.noise_map[0] = [self.noise([i/self.xpix, (self.ypix + offset.y)/self.ypix]) for i in range(0, self.xpix)]
-                #print("down shift")
-            elif num_shift_rows > 0: # shift rows up
-                self.noise_map = np.roll(self.noise_map, -1, axis=1)
-                self.noise_map[-1] = [self.noise([i/self.xpix, (self.ypix + offset.y)/self.ypix]) for i in range(0, self.xpix)]
-                #print("up shift")
-
-            self.generate_terrain()
 
     def generate_terrain(self):
         for i in range(0, self.ypix):

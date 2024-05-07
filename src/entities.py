@@ -21,7 +21,7 @@ class CameraGroup(pygame.sprite.Group):
         self.display_surface = pygame.display.get_surface()
         self.offset = pygame.math.Vector2(0, 0)
 
-        self.ground = Ground()
+        self.ground = Ground(pygame.math.Vector2(0, 0))
         self.ground.draw_terrain()
 
     def center_target_camera(self, target):
@@ -32,6 +32,7 @@ class CameraGroup(pygame.sprite.Group):
         self.center_target_camera(player)
 
         if player.velx != 0 or player.vely != 0:
+            # print(f"{self.offset} {pygame.math.Vector2(player.velx, player.vely)}")
             self.ground.generate_noisemap(self.offset - pygame.math.Vector2(player.velx, player.vely))
         self.ground.draw_terrain()
 
